@@ -92,7 +92,7 @@ const VehicleCard = ({ onSelect }) => {
     const [selectedList, setSelectedList] = useState('available');
 
     const dispatch = useDispatch();
-    const { list: vehicleList, availableCount,
+    const { list: vehicleList, availablecount,
         deactiveCount,
         blacklistedCount,
         totalCount } = useSelector(state => state.vehicles);
@@ -166,7 +166,7 @@ const VehicleCard = ({ onSelect }) => {
             id: 1,
             title: "Available Vehicle",
             type: "available",
-            value: availableCount,
+            value: availablecount,
             duration: "NaN% (30 Days)",
             icon: <LocalShippingIcon fontSize="large" />,
         },

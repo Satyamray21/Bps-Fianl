@@ -18,8 +18,10 @@ import { ReactComponent as RsIcon } from '../../../src/assets/station/rs.svg';
 import { ReactComponent as CustomerIcon } from '../../../src/assets/station/driver.svg';
 import { ReactComponent as TruckIcon } from '../../../src/assets/truck.svg';
 import {useSelector,useDispatch} from 'react-redux'
-import { bookingRequestCount, activeBookingCount, cancelledBookingCount} from '../../features/booking/bookingSlice';
- 
+import { bookingRequestCount, activeBookingCount, cancelledBookingCount,revenueList} from '../../features/booking/bookingSlice';
+import {getAvailableVehiclesCount} from '../../features/vehicle/vehicleSlice' ;
+import {fetchavailableCount} from '../../features/Driver/driverSlice';
+import {fetchActiveCustomerCount} from '../../features/customers/customerSlice';
 
 
 const cardStyles = {
@@ -40,11 +42,19 @@ const cardStyles = {
 
 const Dashboard = () => {
     const dispatch= useDispatch();
-    const {  requestCount, activeDeliveriesCount, cancelledDeliveriesCount } = useSelector(state => state.bookings);
+    const {  requestCount, activeDeliveriesCount, cancelledDeliveriesCount,totalRevenue } = useSelector(state => state.bookings);
+    const {availablecount} = useSelector(state=>state.vehicles);
+    const {availableCount} = useSelector(state=>state.drivers);
+    const {activeCount} = useSelector(state=>state.customers);
     useEffect(()=>{
         dispatch(bookingRequestCount());
         dispatch(activeBookingCount());
         dispatch(cancelledBookingCount());
+        dispatch(revenueList());
+        dispatch(getAvailableVehiclesCount());
+        dispatch(fetchActiveCustomerCount());
+        dispatch(fetchavailableCount())
+        
     },[dispatch])
     
     const summaryData = [
@@ -69,25 +79,25 @@ const Dashboard = () => {
     },
     {
         title: 'Total Revenue',
-        value: 'Rs undefined',
+        value: totalRevenue,
         subtitle: '(30 days)',
         icon: <RsIcon style={{ width: 32, height: 32 }} />,
     },
     {
         title: 'Customers',
-        value: 'Total: undefined',
+        value: activeCount,
         subtitle: '',
         icon: <CustomerIcon style={{ width: 110, height: 110 }} />,
     },
     {
         title: 'Vehicles Available',
-        value: 'Total: 0',
+        value: availablecount,
         subtitle: '',
         icon: <TruckIcon style={{ width: 110, height: 110 }} />,
     },
     {
         title: 'Drivers Available',
-        value: 'Total: 0',
+        value: availableCount,
         subtitle: '',
         icon: <CustomerIcon style={{ width: 110, height: 110 }} />,
     },
