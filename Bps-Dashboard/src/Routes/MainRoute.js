@@ -34,7 +34,7 @@ import ViewQuotation from '../Pages/Admin/Quotation/Form/ViewQuotation';
 import EditQuotations from '../Pages/Admin/Quotation/Form/EditQuotation';
 import TotalRevenue from '../Pages/Admin/Booking/TotalRevenue';
 import TotaLRevenue from '../Pages/Admin/Quotation/TotalRevenue';
-
+import UserForm from '../Pages/Admin/Manage User/Form/UserForm';
 const MainRoute = () => {
     const isAuthenticated = localStorage.getItem("authToken") !== null;
 
@@ -102,7 +102,9 @@ const MainRoute = () => {
                 <Route path="/updatequotation/:bookingId" element={<EditQuotations />} />
                 <Route path='/totalrevenu' element={<TotaLRevenue />} />
 
-
+                {/*User Routing */}
+                 <Route path='/users' element={<UserCard />} />
+                <Route path='/userform' element={<UserForm/>} />
             </Routes>
         </DashboardLayout>
     );
