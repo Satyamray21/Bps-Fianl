@@ -234,7 +234,7 @@ export const getSupervisorsList = asyncHandler(async (req, res) => {
 
     const formattedSupervisors = supervisors.map((supervisor, index) => ({
       sNo: index + 1,
-      supervisorId: supervisor.adminId,
+      adminId: supervisor.adminId,
       name: `${supervisor.firstName} ${supervisor.lastName}`,
       contact: supervisor.contactNumber,
     }));
@@ -260,7 +260,7 @@ export const getAdminsList = asyncHandler(async (req, res) => {
 
       return {
         "S.No": index + 1,
-        "Super admin Id": admin.adminId,
+        adminId: admin.adminId,
         name: `${admin.firstName} ${admin.lastName}`,
         contact: admin.contactNumber,
       };
@@ -281,7 +281,7 @@ export const getDeactivatedSupervisorsList = asyncHandler(async (req, res) => {
 
     const formattedDeactivatedSupervisors = deactivatedSupervisors.map((supervisor, index) => ({
       sNo: index + 1,
-      supervisorId: supervisor.userId,
+      adminId: supervisor.userId,
       name: `${supervisor.firstName} ${supervisor.lastName}`,
       contact: supervisor.contactNumber,
       userId: supervisor._id,
@@ -301,7 +301,7 @@ export const getBlacklistedSupervisorsList = asyncHandler(async (req, res) => {
 
     const formattedBlacklistedSupervisors = blacklistedSupervisors.map((supervisor, index) => ({
       sNo: index + 1,
-      supervisorId: supervisor.adminId,
+      adminId: supervisor.adminId,
       name: `${supervisor.firstName} ${supervisor.lastName}`,
       contact: supervisor.contactNumber,
       

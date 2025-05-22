@@ -110,7 +110,7 @@ export const deactivatedCount = createAsyncThunk(
 export const deactivatedList = createAsyncThunk(
   'deactivatedList/user',async(_,thunkApi)=>{
     try{
-      const res = await axios.get(`${BASE_URL}/admin/supervisors/blacklisted`);
+      const res = await axios.get(`${BASE_URL}/admin/supervisors/deactivated`);
       return res.data.message;
     }
     catch(err)
@@ -135,7 +135,7 @@ export const adminCount = createAsyncThunk(
 export const adminList = createAsyncThunk(
   'adminList/user',async(_,thunkApi)=>{
     try{
-      const res = axios.get(`${BASE_URL}/admin/admins`)
+      const res = await axios.get(`${BASE_URL}/admin/admins`)
     return res.data.message;
     }
     catch(err)

@@ -137,6 +137,7 @@ useEffect(() => {
     }, [selectedList, dispatch]);
   const handleAdd = () => navigate("/userform");
  const handleCardClick = (type) => {
+  console.log("Card clicked:", type);
         setSelectedList(type); // triggers useEffect to auto-fetch
     };
   const handleRequestSort = (property) => {
@@ -154,7 +155,12 @@ useEffect(() => {
     console.log(`Row ${menuRowId} status set to ${status}`);
     handleMenuClose();
   };
-
+ const handleEdit=(adminId)=>{
+  navigate(`/edituser/${adminId}`)
+ }
+ const handleView=(adminId)=>{
+  navigate(`/viewuser/${adminId}`)
+ }
   const filteredRows = userList.filter(
     row => 
            row.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -169,10 +175,7 @@ useEffect(() => {
   { id: 3, title: "Blacklisted", type:'blacklisted',value: blackCount, subtitle: "Blacklisted supervisors", duration: "Last 30 days", icon: <BlockIcon fontSize="large" /> },
   { id: 4, title: "Admins",type:'admin', value: admincount , subtitle: "System administrators", duration: "Last 30 days", icon: <AdminPanelSettingsIcon fontSize="large" /> },
 ];
-console.log('admincount:', admincount);
-console.log('blackCount:', blackCount);
-console.log('deactivatedcount:', deactivatedcount);
-console.log('activeCounts:', activeCounts);
+
 
   return (
     <Box sx={{ p: 2 }}>
@@ -246,8 +249,8 @@ console.log('activeCounts:', activeCounts);
                 <TableCell>{row.contact}</TableCell>
                 <TableCell>
                   <Box sx={{ display:'flex', gap:1 }}>
-                    <IconButton size="small" onClick={() => navigate('/viewuser')}><VisibilityIcon fontSize="small"/></IconButton>
-                    <IconButton size="small" color="primary" onClick={() => navigate('/edituser')}><EditIcon fontSize="small"/></IconButton>
+                    <IconButton size="small" onClick={() => handleView(row.adminId)}><VisibilityIcon fontSize="small"/></IconButton>
+                    <IconButton size="small" color="primary" onClick={() => handleEdit(row.adminId)}><EditIcon fontSize="small"/></IconButton>
                     <IconButton size="small" color="error" ><DeleteIcon fontSize="small"/></IconButton>
                     <IconButton size="small" onClick={e => handleMenuOpen(e, row.id)}><MoreVertIcon fontSize="small"/></IconButton>
                   </Box>
