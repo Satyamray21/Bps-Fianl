@@ -8,6 +8,7 @@ import  nodemailer from "nodemailer";
 import bcrypt from "bcrypt"
 // Register a new user
 export const registerUser = asyncHandler(async (req, res) => {
+  
   try {
     if (req.body.role === 'admin' && req.body.isBlacklisted === true) {
       throw new ApiError(400, "Admin users cannot be blacklisted");
@@ -130,7 +131,8 @@ export const getAllUsersForAdmin = asyncHandler(async (req, res) => {
 // Get user by ID
 export const getUserById = asyncHandler(async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
+    const adminId = req.params.adminId
+    const user = await User.findOne({adminId});
     if (!user) {
       throw new ApiError(404, "User not found");
     }
@@ -209,7 +211,7 @@ export const countTotalAdmins = asyncHandler(async (req, res) => {
 
 // Count total supervisors
 export const countTotalSupervisors = asyncHandler(async (req, res) => {
-  const totalSupervisors = await User.countDocuments({ role: 'supervisor' });
+  const totalSupervisors = await User.countDocuments({ role: 'supervisor',isActive:true,isBlacklisted:false,isDeactivated:false });
   res.status(200).json(new ApiResponse(200, "Total number of supervisors fetched", totalSupervisors));
 });
 
@@ -221,14 +223,14 @@ export const countBlacklistedSupervisors = asyncHandler(async (req, res) => {
 
 // Count deactivated supervisors
 export const countDeactivatedSupervisors = asyncHandler(async (req, res) => {
-  const deactivatedSupervisors = await User.countDocuments({ role: 'supervisor', isActive: false });
+  const deactivatedSupervisors = await User.countDocuments({ role: 'supervisor',isDeactivated:true, isActive: false ,isBlacklisted:false});
   res.status(200).json(new ApiResponse(200, "Total deactivated supervisors fetched", deactivatedSupervisors));
 });
 
 // Get list of all supervisors
 export const getSupervisorsList = asyncHandler(async (req, res) => {
   try {
-    const supervisors = await User.find({ role: 'supervisor',isActive:true,isBlacklisted:false }).select("adminId firstName lastName contactNumber");
+    const supervisors = await User.find({ role: 'supervisor',isActive:true,isBlacklisted:false,isDeactivated:false }).select("adminId firstName lastName contactNumber");
 
     const formattedSupervisors = supervisors.map((supervisor, index) => ({
       sNo: index + 1,
@@ -274,7 +276,7 @@ export const getAdminsList = asyncHandler(async (req, res) => {
 // Get list of deactivated supervisors
 export const getDeactivatedSupervisorsList = asyncHandler(async (req, res) => {
   try {
-    const deactivatedSupervisors = await User.find({ role: 'supervisor', isActive: false })
+    const deactivatedSupervisors = await User.find({ role: 'supervisor', isActive: false ,isBlacklisted:false,isDeactivated:true})
       .select("userId firstName lastName contactNumber");
 
     const formattedDeactivatedSupervisors = deactivatedSupervisors.map((supervisor, index) => ({
@@ -364,16 +366,19 @@ export const updateSupervisorStatus = asyncHandler(async (req, res) => {
     case "available":
       supervisor.isActive = true;
       supervisor.isBlacklisted = false;
+      supervisor.isDeactivated=false
       break;
 
     case "blacklisted":
       supervisor.isActive = false; // IMPORTANT: blacklist means deactivate from active
       supervisor.isBlacklisted = true;
+      supervisor.isDeactivated=false
       break;
 
     case "deactivated":
       supervisor.isActive = false;
-      supervisor.isBlacklisted = false; // Remove from blacklist when deactivating
+      supervisor.isBlacklisted = false;
+      supervisor.isDeactivated=true;
       break;
   }
 
@@ -384,6 +389,7 @@ export const updateSupervisorStatus = asyncHandler(async (req, res) => {
       adminId: supervisor.adminId,
       isActive: supervisor.isActive,
       isBlacklisted: supervisor.isBlacklisted,
+      isDeactivated:supervisor.isDeactivated,
     })
   );
 });

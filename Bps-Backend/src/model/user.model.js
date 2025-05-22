@@ -56,6 +56,12 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required:true
     },
+    pincode:{
+      type:Number
+    },
+    startStation:{
+      type:String
+    },
     role: {
       type: String,
       enum: ['supervisor', 'admin'],
@@ -72,6 +78,10 @@ const UserSchema = new mongoose.Schema(
     isActive: {
       type: Boolean,
       default: true
+    },
+    isDeactivated:{
+      type:Boolean,
+      default:false
     },
     verificationCode: {
       type: String,
