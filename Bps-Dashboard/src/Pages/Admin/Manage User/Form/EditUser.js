@@ -6,6 +6,7 @@ import {
 } from '@mui/material';
 import { InsertDriveFile,Save, ArrowBack } from '@mui/icons-material';
 import { updateUser, viewUserById } from '../../../../features/user/userSlice';
+import {fetchStations} from '../../../../features/stations/stationSlice';
 import { fetchStates, fetchCities, clearCities } from '../../../../features/Location/locationSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
@@ -14,14 +15,14 @@ const EditUser = () => {
   const navigate = useNavigate();
   const { adminId } = useParams();
   const dispatch = useDispatch();
-
-  const { form: userData, loading } = useSelector(state => state.user);
+  const { list: stations } = useSelector((state) => state.stations);
+  const { form: userData, loading } = useSelector(state => state.users);
   const { states, cities } = useSelector((state) => state.location);
   const [form, setForm] = useState({
     firstName: '', middleName: '', lastName: '',
     contactNumber: '', email: '',
-    address: '', state: '', startStation:'',city: '', distnict: '', pincode: '',
-    idProof: '', idPhoto: '', adminPhoto: ''
+    address: '', state: '',city: '', distinct: '', pincode: '',
+    idProof: '', idPhoto: '', adminPhoto: '', startStation:'',
   });
 
   useEffect(() => {
@@ -31,6 +32,7 @@ const EditUser = () => {
 
    useEffect(() => {
             dispatch(fetchStates());
+            dispatch(fetchStations());
         }, [dispatch]);
     
         // Fetch cities when state changes
@@ -52,11 +54,12 @@ const EditUser = () => {
         address: userData.address || '',
         state: userData.state || '',
         city: userData.city || '',
-        district: userData.district || '',
+        distinct: userData.distinct || '',
         pincode: userData.pincode || '',
         idProof: userData.idProof || '',
         idPhoto: userData.idPhoto || '',
-        adminPhoto: userData.adminPhoto || ''
+        adminPhoto: userData.adminPhoto || '',
+        startStation:userData.startStation || '',
         
     });
   }
@@ -123,7 +126,7 @@ const EditUser = () => {
       .unwrap()
       .then(() => {
         alert('Admin updated successfully!');
-        navigate('/user');
+        navigate('/users');
       })
       .catch(err => alert(`Error: ${err}`));
   };
@@ -196,6 +199,23 @@ const EditUser = () => {
                   <Grid item xs={12}>
                     <TextField label="Address" name="address" value={form.address} onChange={handleChange} fullWidth  />
                   </Grid>
+                  <Grid item xs={12} sm={6} md={4}>
+                                                    <TextField
+                                                      select
+                                                      fullWidth
+                                                      label="Start Station"
+                                                      name="startStation"
+                                                      value={form.startStation}
+                                                      onChange={handleChange}
+                                                    >
+                                                      {stations.map((station) => (
+                                                      <MenuItem key={station.stationId || station.sNo} value={station.stationName}>
+                                                              {station.stationName}
+                                                       </MenuItem>
+                                                        ))}
+                                  
+                                                    </TextField>
+                                                  </Grid>
                   <Grid item xs={12} sm={6} md={4}>
                                                                <TextField
                                                                    select
@@ -273,7 +293,7 @@ const EditUser = () => {
                                                                </TextField>
                                                            </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField label="District" name="district" value={form.district} onChange={handleChange} fullWidth  />
+                    <TextField label="District" name="distinct" value={form.distinct} onChange={handleChange} fullWidth  />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField label="Pincode" name="pincode" value={form.pincode} onChange={handleChange} fullWidth  />

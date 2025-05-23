@@ -271,7 +271,7 @@ const userSlice = createSlice({
           middleName: payload.middleName || '',
           lastName: payload.lastName || '',
           contactNumber: payload.contactNumber || '',
-          email: payload.emailId || '',
+          emailId: payload.emailId || '',
           address: payload.address || '',
           state: payload.state || '',
           city: payload.city || '',
