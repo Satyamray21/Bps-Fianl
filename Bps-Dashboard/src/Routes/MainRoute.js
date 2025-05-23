@@ -35,6 +35,8 @@ import EditQuotations from '../Pages/Admin/Quotation/Form/EditQuotation';
 import TotalRevenue from '../Pages/Admin/Booking/TotalRevenue';
 import TotaLRevenue from '../Pages/Admin/Quotation/TotalRevenue';
 import UserForm from '../Pages/Admin/Manage User/Form/UserForm';
+import ViewUser from '../Pages/Admin/Manage User/Form/ViewUser';
+import EditUser from '../Pages/Admin/Manage User/Form/EditUser';
 const MainRoute = () => {
     const isAuthenticated = localStorage.getItem("authToken") !== null;
 
@@ -105,6 +107,9 @@ const MainRoute = () => {
                 {/*User Routing */}
                  <Route path='/users' element={<UserCard />} />
                 <Route path='/userform' element={<UserForm/>} />
+                <Route path='/viewuser/:adminId' element={<ViewUser />} />
+                 <Route path='/edituser/:adminId' element={<EditUser />} />
+                
             </Routes>
         </DashboardLayout>
     );
