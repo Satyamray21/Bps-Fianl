@@ -277,11 +277,11 @@ export const getAdminsList = asyncHandler(async (req, res) => {
 export const getDeactivatedSupervisorsList = asyncHandler(async (req, res) => {
   try {
     const deactivatedSupervisors = await User.find({ role: 'supervisor', isActive: false ,isBlacklisted:false,isDeactivated:true})
-      .select("userId firstName lastName contactNumber");
+      .select("adminId firstName lastName contactNumber");
 
     const formattedDeactivatedSupervisors = deactivatedSupervisors.map((supervisor, index) => ({
       sNo: index + 1,
-      adminId: supervisor.userId,
+      adminId: supervisor.adminId,
       name: `${supervisor.firstName} ${supervisor.lastName}`,
       contact: supervisor.contactNumber,
       userId: supervisor._id,

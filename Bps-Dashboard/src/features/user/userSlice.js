@@ -170,7 +170,18 @@ export const activeList = createAsyncThunk(
     }
   }
 )
-
+export const updateStatus= createAsyncThunk(
+  'updateStus/user',async({adminId,action},thunkApi)=>{
+    try{
+      const res = await axios.patch(`${BASE_URL}/update-status/${adminId}/${action}`);
+      return res.data.message
+    }
+    catch(error)
+    {
+      return thunkApi.rejectWithValue(error.response?.data?.message || 'Failed to update Status');
+    }
+  }
+)
 const initialState = {
     list:[],
     blackCount:0,
@@ -196,7 +207,8 @@ const initialState = {
     },
     status: 'idle',
     error:null,
-    viewedUser:null
+    viewedUser:null,
+    loading: false,
 }
 const userSlice = createSlice({
     name:'users',
@@ -357,6 +369,22 @@ const userSlice = createSlice({
           state.loading=false;
           state.list=action.payload;
         })
+        .addCase(updateStatus.pending, (state) => {
+                  state.loading = true;
+                  state.error = null
+                })
+                .addCase(updateStatus.fulfilled, (state, action) => {
+                  state.loading = false;
+                  const updatedUser = action.payload;
+                  const index = state.list.findIndex(u => u._id === updatedUser._id);
+                  if (index !== -1) {
+                    state.list[index] = updateUser;
+                  }
+                })
+                .addCase(updateStatus.rejected, (state, action) => {
+                  state.loading = false;
+                  state.error = action.payload
+                })
         ;
     }
 

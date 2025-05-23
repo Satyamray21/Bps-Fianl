@@ -40,7 +40,7 @@ import {
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useDispatch,useSelector } from "react-redux";
-import {blacklistedCount,blacklistedList,deactivatedCount,deactivatedList,adminCount,adminList,activeSupervisorCount,activeList}
+import {blacklistedCount,blacklistedList,deactivatedCount,deactivatedList,adminCount,adminList,activeSupervisorCount,activeList,updateStatus,deleteUser}
 from '../../../features/user/userSlice';
 
 
@@ -148,19 +148,25 @@ useEffect(() => {
   const handleChangePage = (_, newPage) => setPage(newPage);
   const handleChangeRowsPerPage = (e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); };
   const handleSearch = (e) => { setSearchTerm(e.target.value); setPage(0); };
-  //const handleDelete = (id) => setRows(rows.filter(row => row.id !== id));
+  const handleDelete = (adminId) => {
+          if (window.confirm("Are you sure you want to delete this Supervisor ?")) {
+  
+              dispatch(deleteUser(adminId));
+          }
+      }
   const handleMenuOpen = (e, id) => { setMenuAnchorEl(e.currentTarget); setMenuRowId(id); };
   const handleMenuClose = () => { setMenuAnchorEl(null); setMenuRowId(null); };
-  const handleStatusChange = (status) => {
-    console.log(`Row ${menuRowId} status set to ${status}`);
-    handleMenuClose();
-  };
+  
  const handleEdit=(adminId)=>{
   navigate(`/edituser/${adminId}`)
  }
  const handleView=(adminId)=>{
   navigate(`/viewuser/${adminId}`)
  }
+ const handleStatusChange = (adminId, action) => {
+         dispatch(updateStatus({ adminId, action }));
+         window.location.reload();
+     };
   const filteredRows = userList.filter(
     row => 
            row.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -251,8 +257,22 @@ useEffect(() => {
                   <Box sx={{ display:'flex', gap:1 }}>
                     <IconButton size="small" onClick={() => handleView(row.adminId)}><VisibilityIcon fontSize="small"/></IconButton>
                     <IconButton size="small" color="primary" onClick={() => handleEdit(row.adminId)}><EditIcon fontSize="small"/></IconButton>
-                    <IconButton size="small" color="error" ><DeleteIcon fontSize="small"/></IconButton>
+                    <IconButton size="small" color="error" onClick={() => handleDelete(row.adminId)}><DeleteIcon fontSize="small"/></IconButton>
                     <IconButton size="small" onClick={e => handleMenuOpen(e, row.id)}><MoreVertIcon fontSize="small"/></IconButton>
+                    <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose} anchorOrigin={{ vertical:'bottom', horizontal:'right' }} transformOrigin={{ vertical:'top', horizontal:'right' }} PaperProps={{ elevation:3, sx:{ borderRadius:2, minWidth:180, mt:1 } }}>
+        <MenuItem onClick={() => handleStatusChange(row.adminId,'available')}>
+          <ListItemIcon><CheckCircleIcon sx={{ color:'green' }} fontSize="small"/></ListItemIcon>
+          <ListItemText primary="Active"/>
+        </MenuItem>
+        <MenuItem onClick={() => handleStatusChange(row.adminId,'deactivated')}>
+          <ListItemIcon><CancelIcon sx={{ color:'orange' }} fontSize="small"/></ListItemIcon>
+          <ListItemText primary="Inactive"/>
+        </MenuItem>
+        <MenuItem onClick={() => handleStatusChange(row.adminId,'blacklisted')}>
+          <ListItemIcon><BlockIcon sx={{ color:'red' }} fontSize="small"/></ListItemIcon>
+          <ListItemText primary="Blacklisted"/>
+        </MenuItem>
+      </Menu>
                   </Box>
                 </TableCell>
               </TableRow>
@@ -265,20 +285,7 @@ useEffect(() => {
         <TablePagination rowsPerPageOptions={[5,10,25]} component="div" count={filteredRows.length} rowsPerPage={rowsPerPage} page={page} onPageChange={handleChangePage} onRowsPerPageChange={handleChangeRowsPerPage} />
       </TableContainer>
 
-      <Menu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose} anchorOrigin={{ vertical:'bottom', horizontal:'right' }} transformOrigin={{ vertical:'top', horizontal:'right' }} PaperProps={{ elevation:3, sx:{ borderRadius:2, minWidth:180, mt:1 } }}>
-        <MenuItem onClick={() => handleStatusChange('Active')}>
-          <ListItemIcon><CheckCircleIcon sx={{ color:'green' }} fontSize="small"/></ListItemIcon>
-          <ListItemText primary="Active"/>
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange('Inactive')}>
-          <ListItemIcon><CancelIcon sx={{ color:'orange' }} fontSize="small"/></ListItemIcon>
-          <ListItemText primary="Inactive"/>
-        </MenuItem>
-        <MenuItem onClick={() => handleStatusChange('Blacklisted')}>
-          <ListItemIcon><BlockIcon sx={{ color:'red' }} fontSize="small"/></ListItemIcon>
-          <ListItemText primary="Blacklisted"/>
-        </MenuItem>
-      </Menu>
+      
     </Box>
   );
 };
