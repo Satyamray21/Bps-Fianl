@@ -9,6 +9,7 @@ import { Customer } from "../model/customer.model.js";
  */
 export const previewInvoices = async (req, res) => {
   try {
+    console.log("re",req.body);
     const { emailId, contactNumber, orderType, fromDate, endDate } = req.body;
 
     const customerQuery = emailId ? { emailId } : { mobile: contactNumber };
