@@ -37,6 +37,8 @@ import TotaLRevenue from '../Pages/Admin/Quotation/TotalRevenue';
 import UserForm from '../Pages/Admin/Manage User/Form/UserForm';
 import ViewUser from '../Pages/Admin/Manage User/Form/ViewUser';
 import EditUser from '../Pages/Admin/Manage User/Form/EditUser';
+import ExpensesCard from '../Pages/Admin/Manage Expense/ExpenseCard';
+import LedgerHistory from '../Pages/Admin/LedgerHistory/LedgerHistory';
 const MainRoute = () => {
     const isAuthenticated = localStorage.getItem("authToken") !== null;
 
@@ -110,6 +112,11 @@ const MainRoute = () => {
                 <Route path='/viewuser/:adminId' element={<ViewUser />} />
                  <Route path='/edituser/:adminId' element={<EditUser />} />
                 
+                {/* Expense Routing */}
+                <Route path='/expenses' element={<ExpensesCard />}/>
+
+                {/* LedgerHistory */}
+               <Route path='/ladgerhsitory' element={<LedgerHistory />}/>
             </Routes>
         </DashboardLayout>
     );

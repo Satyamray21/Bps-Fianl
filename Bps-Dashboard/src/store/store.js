@@ -8,6 +8,8 @@ import quotationReducer from '../features/quotation/quotationSlice'
 import vehicleReducer from '../features/vehicle/vehicleSlice'
 import deliveryReducer from '../features/delivery/deliverySlice'
 import UserReducer from '../features/user/userSlice'
+import ExpenseReducer from '../features/expense/expenseSlice'
+import CustomerLedgerReducer from '../features/customerLedger/customerLedgerSlice'
 export const store = configureStore({
   reducer: {
     stations: stationReducer,
@@ -18,7 +20,9 @@ export const store = configureStore({
     quotations:quotationReducer,
     vehicles:vehicleReducer,
     deliveries:deliveryReducer,
-    users:UserReducer
+    users:UserReducer,
+    expenses:ExpenseReducer,
+    ledger:CustomerLedgerReducer,
 
   },
 });

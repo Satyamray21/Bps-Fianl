@@ -230,7 +230,9 @@ const BookingSchema = new mongoose.Schema(
       type: String,
       enum: ['admin', 'supervisor'],
       required: true
-    }
+    },
+    customerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
+
 
   },
   { timestamps: true }

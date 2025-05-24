@@ -318,8 +318,11 @@ export const deleteUser = asyncHandler(async (req, res) => {
   try {
     const requestingUserId = req.user._id; // Logged-in user's Mongo _id
     const requestingUserRole = req.user.role; // Logged-in user's role
-
-    const userToDelete = await User.findOne({ adminId: req.params.adminId });
+     const { adminId } = req.params;
+    console.log("adminId from req.params:", req.params.adminId);
+    const users = await User.find({});
+console.log(users);
+    const userToDelete = await User.findOne({ adminId });
     if (!userToDelete) {
       throw new ApiError(404, "User not found");
     }
@@ -348,6 +351,8 @@ export const deleteUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, error.message);
   }
 });
+
+
 
 export const updateSupervisorStatus = asyncHandler(async (req, res) => {
   const { adminId, action } = req.params;
