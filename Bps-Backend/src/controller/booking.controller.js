@@ -73,7 +73,8 @@ export const createBooking = async (req, res) => {
       sgst,
       igst,
       billTotal,
-      grandTotal,
+      grandTotal
+      
     } = req.body;
 
     if (!email || !startName || !endName || !bookingDate || !deliveryDate || !items) {
@@ -129,7 +130,8 @@ export const createBooking = async (req, res) => {
       billTotal,
       grandTotal,
       createdByUser: user._id,
-      createdByRole: user.role
+      createdByRole: user.role,
+      requestedByRole: user.role
     });
 
     // Save the booking
@@ -145,6 +147,89 @@ export const createBooking = async (req, res) => {
     res.status(500).json({ message: err.message || "Server Error" });
   }
 };
+export const createPublicBooking = async (req, res) => {
+  try {
+    const {
+      email,
+      startStation: startName,
+      endStation: endName,
+      bookingDate,
+      deliveryDate,
+      senderName,
+      senderGgt,
+      senderLocality,
+      fromState,
+      fromCity,
+      senderPincode,
+      receiverName,
+      receiverGgt,
+      receiverLocality,
+      toState,
+      toCity,
+      toPincode,
+      items,
+      addComment,
+      freight,
+      ins_vpp,
+      cgst,
+      sgst,
+      igst,
+      billTotal,
+      grandTotal,
+    } = req.body;
+
+    if (!email || !startName || !endName || !bookingDate || !deliveryDate || !items) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Resolve stations
+    const startStation = await resolveStation(startName);
+    const endStation = await resolveStation(endName);
+    if (!startStation || !endStation) {
+      return res.status(400).json({ message: "Invalid station names" });
+    }
+
+    // Create booking without customerId
+    const booking = new Booking({
+      startStation,
+      endStation,
+      bookingDate,
+      deliveryDate,
+      senderName,
+      senderGgt,
+      senderLocality,
+      fromState,
+      fromCity,
+      senderPincode,
+      receiverName,
+      receiverGgt,
+      receiverLocality,
+      toState,
+      toCity,
+      toPincode,
+      items,
+      addComment,
+      freight,
+      ins_vpp,
+      cgst,
+      sgst,
+      igst,
+      billTotal,
+      grandTotal,
+      email, // store for reference
+      isApproved: false, // pending approval
+      requestedByRole: "public"
+    });
+
+    await booking.save();
+
+    res.status(201).json({ message: "Booking request submitted. Awaiting admin approval.", booking });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
 
 export const sendBookingEmail = async (email, booking) => {
   const {
@@ -266,20 +351,39 @@ export const getBookingStatusList = async (req, res) => {
   try {
     const { type } = req.query;
     let filter;
-
+   const user= req.user;
     if (type === 'active') {
       filter = { activeDelivery: true };
     } else if (type === 'cancelled') {
       filter = { totalCancelled: { $gt: 0 } };
     } else {
-      // request = neither active nor cancelled
-      filter = { activeDelivery: false, totalCancelled: 0 };
+      
+      filter =  {
+    activeDelivery: false,
+    totalCancelled: 0,
+    $or: [
+    { createdByRole: { $in: ['admin', 'supervisor'] } }, // Always include bookings created by admin/supervisor
+    { requestedByRole: 'public', isApproved: true }        // Only approved bookings created by public users
+  ]
+   
+      }
+      
+    }
+    if (user.role === 'supervisor') {
+      
+      filter = {
+        $and: [
+          filter,
+          { createdByUser: user._id }  
+        ]
+      };
     }
 
     const bookings = await Booking.find(filter)
+    
       .select('bookingId firstName lastName senderName receiverName bookingDate mobile startStation endStation')
       .populate('startStation endStation', 'stationName')
-      .populate('createdByUser', ' role')
+      .populate('createdByRole', ' role')
       .lean();
 
     // Filter out bookings with missing station references
@@ -287,7 +391,7 @@ export const getBookingStatusList = async (req, res) => {
 
     const data = validBookings.map((b, i) => ({
       SNo: i + 1,
-      orderBy: b.createdByUser?.role || 'N/A',
+      orderBy: b.createdByRole || 'N/A',
       date: b.bookingDate?.toISOString().slice(0, 10) || 'N/A',
       fromName: b.senderName || 'N/A',
       pickup: b.startStation?.stationName || 'N/A',
@@ -306,6 +410,52 @@ export const getBookingStatusList = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const getPendingThirdPartyBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      requestedByRole: "public",
+      isApproved: false,
+    })
+    .populate('startStation endStation', 'stationName')
+    .sort({ createdAt: -1 });
+
+    res.status(200).json({ count: bookings.length, bookings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+export const approveThirdPartyBookingRequest = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const user = req.user;
+
+    if (!["admin", "supervisor"].includes(user.role)) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
+    const booking = await Booking.findOne({bookingId});
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (booking.isApproved) {
+      return res.status(400).json({ message: "Booking already approved" });
+    }
+
+    booking.isApproved = true;
+    booking.approvedBy = user.adminId;
+    booking.approvedAt = new Date();
+
+    await booking.save();
+
+    res.status(200).json({ message: "Booking approved successfully", booking });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: err.message || "Server error" });
   }
 };
 

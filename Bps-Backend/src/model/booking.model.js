@@ -222,17 +222,19 @@ const BookingSchema = new mongoose.Schema(
       default: false
     },
     createdByUser: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
+     type:String,
+     
     },
     createdByRole: {
       type: String,
       enum: ['admin', 'supervisor'],
-      required: true
+      
     },
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: "Customer" },
-
+    isApproved: { type: Boolean, default: false },
+    requestedByRole: { type: String, default: 'public' },
+    approvedBy: {  type: String },
+    approvedAt: { type: Date }
 
   },
   { timestamps: true }
