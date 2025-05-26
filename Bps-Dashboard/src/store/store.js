@@ -10,6 +10,7 @@ import deliveryReducer from '../features/delivery/deliverySlice'
 import UserReducer from '../features/user/userSlice'
 import ExpenseReducer from '../features/expense/expenseSlice'
 import CustomerLedgerReducer from '../features/customerLedger/customerLedgerSlice'
+import ContactReducer from '../features/contact/contactSlice'
 export const store = configureStore({
   reducer: {
     stations: stationReducer,
@@ -23,6 +24,7 @@ export const store = configureStore({
     users:UserReducer,
     expenses:ExpenseReducer,
     ledger:CustomerLedgerReducer,
+    contact:ContactReducer,
 
   },
 });
