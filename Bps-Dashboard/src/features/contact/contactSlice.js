@@ -42,8 +42,9 @@ export const viewContact = createAsyncThunk(
     }
 )
 export const updateContact = createAsyncThunk(
-    'updateContact/update',async({contactNumber,data},thunkApi)=>{
+    'updateContact/update',async(contact,thunkApi)=>{
         try{
+             const { contactNumber, ...data } = contact;
             const res = await axios.put(`${BASE_URL}/${contactNumber}`,data);
             return res.data.message;
         }
@@ -56,7 +57,7 @@ export const updateContact = createAsyncThunk(
 export const deleteContact= createAsyncThunk(
     'deleteContact/contact',async(contactNumber,thunkApi)=>{
         try{
-            const res = axios.delete(`${BASE_URL}/${contactNumber}`);
+            const res = await axios.delete(`${BASE_URL}/${contactNumber}`);
             return contactNumber;
         }
         catch(err)

@@ -89,7 +89,7 @@ const ContactCard = () => {
     if (
       window.confirm(`Are you sure you want to delete contact: ${contactToDelete.name}?`)
     ) {
-      await dispatch(deleteContact(contactToDelete._id));
+      await dispatch(deleteContact(contactToDelete.contactNumber));
       // If we were editing or viewing this contact, reset form
       if (editIndex === index || isViewMode) {
         setFormData({ name: '', contactNumber: '', email: '', address: '' });
