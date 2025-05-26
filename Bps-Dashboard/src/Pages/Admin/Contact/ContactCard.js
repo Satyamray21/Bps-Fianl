@@ -75,6 +75,7 @@ const ContactCard = () => {
     } else {
       // Create contact
       await dispatch(createContact(formData));
+      dispatch(getAllContact());
     }
     // Reset form and state
     setFormData({ name: '', contactNumber: '', email: '', address: '' });
