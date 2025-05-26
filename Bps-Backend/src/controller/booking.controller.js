@@ -222,7 +222,7 @@ export const createPublicBooking = async (req, res) => {
     });
 
     await booking.save();
-
+    await sendBookingAcknowledgementEmail(email, booking);
     res.status(201).json({ message: "Booking request submitted. Awaiting admin approval.", booking });
   } catch (err) {
     console.error(err);
@@ -230,6 +230,58 @@ export const createPublicBooking = async (req, res) => {
   }
 };
 
+export const sendBookingAcknowledgementEmail = async (email, booking) => {
+  const {
+    senderLocality,
+    fromCity,
+    fromState,
+    senderPincode,
+    receiverLocality,
+    toCity,
+    toState,
+    toPincode,
+    grandTotal,
+    items = []
+  } = booking;
+
+  const totalWeight = items.reduce((sum, item) => sum + (item.weight || 0), 0);
+
+  const mailOptions = {
+    from: process.env.GMAIL_USER,
+    to: email,
+    subject: `Booking Request Received for-${booking.bookingId}  Pending Confirmation`,
+    html: `
+      <h2>Booking Request Received</h2>
+
+      <p>Dear Customer,</p>
+
+      <p>Thank you for submitting your parcel booking request with us.</p>
+      
+      <p>Your request has been received and is currently <strong>awaiting admin approval</strong>.</p>
+
+      <h3>Pickup Address:</h3>
+      <p>${senderLocality}, ${fromCity}, ${fromState}, ${senderPincode}</p>
+
+      <h3>Delivery Address:</h3>
+      <p>${receiverLocality}, ${toCity}, ${toState}, ${toPincode}</p>
+
+      <h3>Booking Summary:</h3>
+      <p>Total Weight: ${totalWeight} kg</p>
+      <p>Estimated Amount: ₹${grandTotal}</p>
+
+      <p>You will receive another email with confirmation and tracking ID once your request is approved.</p>
+
+      <p>Best regards, <br /> BharatParcel Team</p>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Acknowledgement email sent to ${email}`);
+  } catch (error) {
+    console.error('Error sending acknowledgement email:', error);
+  }
+};
 
 export const sendBookingEmail = async (email, booking) => {
   const {
@@ -451,7 +503,7 @@ export const approveThirdPartyBookingRequest = async (req, res) => {
     booking.approvedAt = new Date();
 
     await booking.save();
-
+    await sendBookingEmail(booking.email, booking);
     res.status(200).json({ message: "Booking approved successfully", booking });
   } catch (err) {
     console.error(err);
