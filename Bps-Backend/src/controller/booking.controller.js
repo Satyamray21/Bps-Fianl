@@ -17,6 +17,37 @@ const transporter = nodemailer.createTransport({
     pass: process.env.app_pass
   }
 });
+//base condition
+const getBookingFilterByType = (type, user) => {
+  let baseFilter = {};
+
+  if (type === 'active') {
+    baseFilter = { activeDelivery: true };
+  } else if (type === 'cancelled') {
+    baseFilter = { totalCancelled: { $gt: 0 } };
+  } else {
+    baseFilter = {
+      activeDelivery: false,
+      totalCancelled: 0,
+      $or: [
+        { createdByRole: { $in: ['admin', 'supervisor'] } },
+        { requestedByRole: 'public', isApproved: true }
+      ]
+    };
+  }
+
+  if (user?.role === 'supervisor') {
+    return {
+      $and: [
+        baseFilter,
+        { createdByUser: user._id }
+      ]
+    };
+  }
+
+  return baseFilter;
+};
+
 /** 
  * View a single booking by its bookingId or _id
  * GET /api/bookings/:id
@@ -539,27 +570,31 @@ export const cancelBooking = async (req, res) => {
 
 export const getBookingRevenueList = async (req, res) => {
   try {
-    const bookings = await Booking.find({ totalCancelled: 0 })
+    const user = req.user;
+    const filter = getBookingFilterByType('request', user); // Use shared logic
+
+    const bookings = await Booking.find(filter)
       .select('bookingId bookingDate startStation endStation grandTotal')
       .populate('startStation endStation', 'stationName')
       .lean();
 
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.grandTotal, 0);
+    const totalRevenue = bookings.reduce((sum, b) => sum + (b.grandTotal || 0), 0);
 
-    const data = bookings.map((b, i) => ({
-      SNo: i + 1,
-      bookingId: b.bookingId,
-      date: b.bookingDate?.toISOString().slice(0, 10) || 'N/A',
-      pickup: b.startStation?.stationName || 'Unknown',
-      drop: b.endStation?.stationName || 'Unknown',
-      revenue: b.grandTotal?.toFixed(2) || '0.00',
-      action: {
-        view: `/bookings/${b.bookingId}`,
-        edit: `/bookings/edit/${b.bookingId}`,
-        delete: `/bookings/delete/${b.bookingId}`
-      }
-    }));
-
+    const data = bookings
+      .filter(b => b.startStation && b.endStation) // Filter out bookings with missing stations
+      .map((b, i) => ({
+        SNo: i + 1,
+        bookingId: b.bookingId,
+        date: b.bookingDate?.toISOString().slice(0, 10) || 'N/A',
+        pickup: b.startStation?.stationName || 'Unknown',
+        drop: b.endStation?.stationName || 'Unknown',
+        revenue: b.grandTotal?.toFixed(2) || '0.00',
+        action: {
+          view: `/bookings/${b.bookingId}`,
+          edit: `/bookings/edit/${b.bookingId}`,
+          delete: `/bookings/delete/${b.bookingId}`
+        }
+      }));
 
     res.json({
       totalRevenue: totalRevenue.toFixed(2),
@@ -573,47 +608,61 @@ export const getBookingRevenueList = async (req, res) => {
 };
 
 
+
 // GET /api/v2/bookings/count/requests
 export const getBookingRequestsCount = async (req, res) => {
   try {
-    const count = await Booking.countDocuments({ activeDelivery: false, totalCancelled: 0 });
+    const user = req.user;
+    const filter = getBookingFilterByType('request', user);
+    const count = await Booking.countDocuments(filter);
     res.json({ bookingRequests: count });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+
 // GET /api/v2/bookings/count/active
 export const getActiveDeliveriesCount = async (req, res) => {
   try {
-    const count = await Booking.countDocuments({ activeDelivery: true });
+    const user = req.user;
+    const filter = getBookingFilterByType('active', user);
+    const count = await Booking.countDocuments(filter);
     res.json({ activeDeliveries: count });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+
 // GET /api/v2/bookings/count/cancelled
 export const getCancelledBookingsCount = async (req, res) => {
   try {
-    const count = await Booking.countDocuments({ totalCancelled: { $gt: 0 } });
+    const user = req.user;
+    const filter = getBookingFilterByType('cancelled', user);
+    const count = await Booking.countDocuments(filter);
     res.json({ cancelledCount: count });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+
 // GET /api/v2/bookings/revenue/total
 export const getTotalRevenue = async (req, res) => {
   try {
-    const bookings = await Booking.find({ totalCancelled: 0 }).select('grandTotal').lean();
-    const totalRevenue = bookings.reduce((sum, b) => sum + b.grandTotal, 0);
+    const user = req.user;
+    const filter = getBookingFilterByType('request', user); // request = non-active, non-cancelled
+    const bookings = await Booking.find(filter).select('grandTotal').lean();
+    
+    const totalRevenue = bookings.reduce((sum, b) => sum + (b.grandTotal || 0), 0);
     res.json({ totalRevenue: totalRevenue.toFixed(2) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // PATCH /api/v2/bookings/:id/activate
 export const activateBooking = async (req, res) => {
