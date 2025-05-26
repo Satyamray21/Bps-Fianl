@@ -135,7 +135,15 @@ const quotationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-
+  createdByRole: {
+      type: String,
+      enum: ['admin', 'supervisor'],
+      
+    },
+    createdByUser: {
+     type:String,
+     
+    },
 }, { timestamps: true });
 
 
